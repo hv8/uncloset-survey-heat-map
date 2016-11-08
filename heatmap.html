@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Heatmap of Location of Potential Customers</title>
+    <style>
+      /* to have the map be displayed as large as possible */
+      html, body, #map-canvas {
+        height: 100%;
+        margin: 0px;
+        padding: 0px
+      }
+    </style>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBRqcjaBHFL3YkdhMGBlBX6-RAhFvtU22g&libraries=visualization"></script>
+    <script>
+var map, pointarray, heatmap;
+
+// a shortened version of the data for Google's taxi example
+var custData = [
+{location: new google.maps.LatLng(53.52205,-1.1296), weight:1},
+{location: new google.maps.LatLng(50.82366,-4.53323), weight:1},
+{location: new google.maps.LatLng(51.28687,-0.07964), weight:1},
+{location: new google.maps.LatLng(51.5127,-0.31951), weight:1},
+{location: new google.maps.LatLng(53.10281,-2.43469), weight:1},
+{location: new google.maps.LatLng(53.32987,-2.7028), weight:1},
+{location: new google.maps.LatLng(51.78673,-0.06863), weight:2},
+{location: new google.maps.LatLng(54.97262,-1.61097), weight:4},
+{location: new google.maps.LatLng(52.40601,1.3215), weight:4},
+{location: new google.maps.LatLng(50.84377,-1.78551), weight:1},
+{location: new google.maps.LatLng(51.50876,-3.57514), weight:1},
+{location: new google.maps.LatLng(52.58569,-2.11514), weight:1},
+{location: new google.maps.LatLng(55.07353,-3.58045), weight:1},
+{location: new google.maps.LatLng(51.5886,0.0824), weight:1},
+{location: new google.maps.LatLng(51.6536,-0.06707), weight:1},
+{location: new google.maps.LatLng(53.79674,-1.54754), weight:1},
+{location: new google.maps.LatLng(55.95243,-3.1884), weight:2},
+{location: new google.maps.LatLng(53.50302,-1.61249), weight:1},
+{location: new google.maps.LatLng(52.61855,-1.66762), weight:1},
+{location: new google.maps.LatLng(52.17611,0.18955), weight:2},
+{location: new google.maps.LatLng(52.954,-1.147), weight:1},
+{location: new google.maps.LatLng(53.02616,-2.17148), weight:2},
+{location: new google.maps.LatLng(52.90493,-3.60003), weight:1},
+{location: new google.maps.LatLng(50.47156,-3.52209), weight:1},
+{location: new google.maps.LatLng(50.90805,-1.39546), weight:1},
+{location: new google.maps.LatLng(55.97334,-4.0577), weight:1},
+{location: new google.maps.LatLng(51.47387,-3.17648), weight:1},
+{location: new google.maps.LatLng(51.4613,-0.3038), weight:1},
+{location: new google.maps.LatLng(50.73783,-2.04394), weight:1},
+{location: new google.maps.LatLng(51.45309,-2.593), weight:1},
+{location: new google.maps.LatLng(51.73412,-3.13977), weight:1},
+{location: new google.maps.LatLng(52.08212,0.44187), weight:3},
+{location: new google.maps.LatLng(50.73692,-1.9263), weight:1},
+{location: new google.maps.LatLng(53.55113,-2.19624), weight:1},
+{location: new google.maps.LatLng(53.99264,-2.05339), weight:1},
+{location: new google.maps.LatLng(51.6998,-3.24311), weight:1},
+{location: new google.maps.LatLng(52.38699,-1.8795), weight:1},
+{location: new google.maps.LatLng(52.40939,-1.506), weight:1},
+{location: new google.maps.LatLng(51.62742,-3.93905), weight:3},
+{location: new google.maps.LatLng(52.77372,-1.55377), weight:1},
+{location: new google.maps.LatLng(51.17117,-2.1874), weight:1},
+{location: new google.maps.LatLng(54.97136,-1.511), weight:1},
+{location: new google.maps.LatLng(53.74288,-0.33494), weight:2},
+{location: new google.maps.LatLng(52.47872,-1.90723), weight:5},
+{location: new google.maps.LatLng(52.13797,-0.47145), weight:1},
+{location: new google.maps.LatLng(51.51811,-0.08578), weight:19},
+{location: new google.maps.LatLng(53.47734,-2.23508), weight:6},
+{location: new google.maps.LatLng(54.88535,-2.91046), weight:1},
+{location: new google.maps.LatLng(50.839,-0.13786), weight:2},
+{location: new google.maps.LatLng(54.60656,-1.06791), weight:1},
+{location: new google.maps.LatLng(50.81288,-0.37599), weight:1},
+{location: new google.maps.LatLng(52.63379,-1.12812), weight:2},
+{location: new google.maps.LatLng(53.26827,-3.59257), weight:1},
+{location: new google.maps.LatLng(51.11291,-2.44576), weight:2},
+{location: new google.maps.LatLng(53.3802,-1.46777), weight:1},
+{location: new google.maps.LatLng(52.54797,-1.92921), weight:2},
+{location: new google.maps.LatLng(53.79919,-2.21865), weight:3},
+{location: new google.maps.LatLng(51.45366,-0.96942), weight:1},
+{location: new google.maps.LatLng(51.56971,-0.40977), weight:2},
+{location: new google.maps.LatLng(51.99938,0.21443), weight:1},
+{location: new google.maps.LatLng(53.41927,-0.70129), weight:1},
+{location: new google.maps.LatLng(51.73245,-4.10721), weight:2},
+{location: new google.maps.LatLng(51.37757,-0.24255), weight:1},
+{location: new google.maps.LatLng(53.42705,-0.94339), weight:1},
+{location: new google.maps.LatLng(56.20866,-3.43173), weight:1},
+{location: new google.maps.LatLng(54.78103,-1.56616), weight:1},
+{location: new google.maps.LatLng(52.02989,0.26551), weight:2},
+{location: new google.maps.LatLng(50.72427,-1.85973), weight:1},
+{location: new google.maps.LatLng(55.86038,-4.24671), weight:4},
+{location: new google.maps.LatLng(54.59941,-5.92838), weight:4},
+{location: new google.maps.LatLng(51.87476,-0.42373), weight:1},
+{location: new google.maps.LatLng(53.40254,-2.97928), weight:1}
+  //new google.maps.LatLng(51.39957, -1.32143)
+  // ...
+];
+
+
+function initialize() {
+  // the map's options
+  var mapOptions = {
+    zoom: 6,
+    center: new google.maps.LatLng(54.2361, -4.5481),
+    mapTypeId: google.maps.MapTypeId.TERRAIN
+  };
+
+  // the map and where to place it
+  map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+
+  var pointArray = new google.maps.MVCArray(custData);
+
+  // what data for the heatmap and how to display it
+  heatmap = new google.maps.visualization.HeatmapLayer({
+    data: pointArray,
+    radius: 30
+  });
+
+  // placing the heatmap on the map
+  heatmap.setMap(map);
+}
+
+// as soon as the document is ready the map is initialized
+google.maps.event.addDomListener(window, 'load', initialize);
+
+    </script>
+  </head>
+
+  <body>
+    <!-- this is where the map finally is drawn onto -->
+    <div id="map-canvas"></div>
+  </body>
+</html>
